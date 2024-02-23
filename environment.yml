@@ -1,0 +1,9 @@
+name: spectral_correction
+dependencies:
+  - xarray
+  - scipy
+  - click
+  - joblib
+  - pip
+  - pip:
+    - spectral
