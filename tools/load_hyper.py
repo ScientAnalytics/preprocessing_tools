@@ -144,10 +144,10 @@ def hull_correction(spec):
                                   np.insert(
                                       spec.wavelength.values, 0, spec.wavelength.values[0]),
                                   spec.wavelength.values[-1])))
-    
+
     # we can then calculate the actual convex hull
     hull = spatial.ConvexHull(points)
-    
+
     # we need to shift all the indices, since points has extra elements that spec does not
     vertices = np.array(sorted(hull.vertices - 1))
     vertices = np.pad(vertices, pad_width=(0, len(spec.wavelength.values)-len(hull.vertices)), mode='minimum')
@@ -156,7 +156,7 @@ def hull_correction(spec):
         hull_points = spec[vertices]
     except IndexError:
         hull_points = spec[vertices[:-1]]
-    
+
     return _continuum_correction(hull_points, spec)
 
 
@@ -168,5 +168,5 @@ def _continuum_correction(hull_points, spec):
     )
     continuum = continuum_interpolator(spec.wavelength)
     corrected_spec = spec / continuum
-    
+
     return corrected_spec

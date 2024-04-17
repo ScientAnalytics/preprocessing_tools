@@ -1,7 +1,5 @@
 from scipy import interpolate, spatial
 import numpy as np
-import xarray as xr
-from joblib import Parallel, delayed
 
 
 def continuum_correction_spectrum(spec, spec_wavelength):

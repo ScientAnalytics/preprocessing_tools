@@ -47,6 +47,7 @@ def white_dark_correction(hsi, white, dark):
     print("Exiting white_dark_correction function...")
     return top_div_bottom
 
+
 @click.command()
 @click.option('--infolder', prompt='Folder to read',
               help='The location of the files you wish to load.')
@@ -60,7 +61,6 @@ def white_dark_correction(hsi, white, dark):
 @click.option('--drift', default=0,
               help='''Correct drift in wavelengths. Will add this value to the
               recorded wavelength values.''')
-
 def process_folder(infolder, outfolder, force, ignore_bands, drift):
     # Hardcoded paths to good reference files
     good_dark_ref_path = 'C:/Users/Rehan/Desktop/reference/21Alpha_Enon Lake_K242_1_11.9_21.7_SWIR_2023-09-20darkReference.hdr'
@@ -76,11 +76,11 @@ def process_folder(infolder, outfolder, force, ignore_bands, drift):
             outfolder = infolder
         elif not path.exists(outfolder):
             os.makedirs(outfolder, exist_ok=True)
-        
+
         # Load the good white and dark references once
         good_white_ref = load_hyper.load_image(good_white_ref_path)[:, :, ignore_bands:]
         good_dark_ref = load_hyper.load_image(good_dark_ref_path)[:, :, ignore_bands:]
-        
+
         images = folder_to_load(infolder)[0]  # Assuming folder_to_load returns a tuple of lists
 
         for count, im in enumerate(images, start=1):
@@ -88,7 +88,7 @@ def process_folder(infolder, outfolder, force, ignore_bands, drift):
                 print(f'''Processing file {path.basename(im)}
                 {count} of {len(images)}''')
                 hsi = load_hyper.load_image(im)[:, :, ignore_bands:]
-                
+
                 # Use hardcoded good white and dark references for correction
                 fname = path.basename(hsi.attrs.get('filename')).replace('raw', 'wd-c-corr')
                 fname = path.join(outfolder, fname)
