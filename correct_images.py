@@ -1,11 +1,12 @@
-import load_hyper
-from continuum_correction import continuum_image
+import tools.load_hyper as load_hyper
+from tools.continuum_correction import continuum_image
 import os.path as path
 import os
 import glob
 import numpy
 from spectral import envi
 import click
+
 
 def folder_to_load(folder_location):
     print("Entered folder_to_load function...")

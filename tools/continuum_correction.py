@@ -40,8 +40,8 @@ def continuum_correction_spectrum(spec, spec_wavelength):
                                   np.insert(
                                       spec_wavelength, 0, spec_wavelength[0]),
                                   spec_wavelength[-1])))
-    
-#     points = points[~np.isnan(points)]
+
+    # points = points[~np.isnan(points)]
     points = np.nan_to_num(points, nan=0, posinf=1, neginf=0)
 
     # we can then calculate the actual convex hull
@@ -75,50 +75,3 @@ def continuum_correction_spectrum(spec, spec_wavelength):
     continuum = continuum_interpolator(spec_wavelength)
     final = np.array(spec / continuum)
     return final
-
-    if min(spec) >= 0 and max(spec) <= 1:
-        return np.array(spec - continuum)
-    else:
-        return np.array(spec / continuum)
-
-
-
-def continuum_correction_image(da):
-    """
-    Do continuum correction over an entire image.
-
-    This is horrifically slow, and we should look at improving this step in
-    the processing toolchain.
-
-    Parameters
-    ----------
-    da : xarray.DataArray
-        The image for which continuum correction is desired
-
-    Returns
-    -------
-    xarray.DataArray
-        The continuum-corrected image
-    """
-    cont = xr.apply_ufunc(continuum_correction_spectrum,
-                          da,
-                          da.wavelength,
-                          input_core_dims=[['wavelength'], ['wavelength']],
-                          output_core_dims=[['wavelength']],
-                          vectorize=True
-                          )
-    cont.attrs = da.attrs
-    return cont
-
-
-def continuum_image(hsi):
-    c_corr = np.array(Parallel(n_jobs=-1)(
-    delayed(continuum_correction_spectrum)(pixel, hsi.wavelength) for pixel in hsi.values.reshape(-1, hsi.shape[-1])
-)).reshape(hsi.shape)
-    cont = xr.DataArray(c_corr,
-                        coords={'lines': hsi.lines,
-                                'samples': hsi.samples,
-                                'wavelength': hsi.wavelength
-                                }
-                        )
-    return cont
