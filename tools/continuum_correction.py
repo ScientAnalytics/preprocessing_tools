@@ -115,3 +115,44 @@ def _continuum_correction(hull_points, spec):
     corrected_spec = spec / continuum
 
     return corrected_spec
+
+
+def continuum_correction_image(da):
+    """
+    Do continuum correction over an entire image.
+
+    This is horrifically slow, and we should look at improving this step in
+    the processing toolchain.
+
+    Parameters
+    ----------
+    da : xarray.DataArray
+        The image for which continuum correction is desired
+
+    Returns
+    -------
+    xarray.DataArray
+        The continuum-corrected image
+    """
+    cont = xr.apply_ufunc(continuum_correction_spectrum,
+                          da,
+                          da.wavelength,
+                          input_core_dims=[['wavelength'], ['wavelength']],
+                          output_core_dims=[['wavelength']],
+                          vectorize=True
+                          )
+    cont.attrs = da.attrs
+    return cont
+
+
+def continuum_image(hsi):
+    c_corr = np.array(Parallel(n_jobs=-1)(
+    delayed(continuum_correction_spectrum)(pixel, hsi.wavelength) for pixel in hsi.values.reshape(-1, hsi.shape[-1])
+)).reshape(hsi.shape)
+    cont = xr.DataArray(c_corr,
+                        coords={'lines': hsi.lines,
+                                'samples': hsi.samples,
+                                'wavelength': hsi.wavelength
+                                }
+                        )
+    return cont
