@@ -1,11 +1,13 @@
-import tools.load_hyper as load_hyper
-from tools.continuum_correction import continuum_image
 import os.path as path
-import os
 import glob
-import numpy
+
+import numpy as np
+import xarray as xr
 from spectral import envi
 import click
+
+import tools.load_hyper as load_hyper
+from tools.continuum_correction import continuum_image
 
 
 def folder_to_load(folder_location):
@@ -118,7 +120,7 @@ def process_folder(infolder, outfolder, force, ignore_bands, drift,
 
         print(f'Saving file to {fname}.hdr', end=' ')
         envi.save_image(f'{fname}.hdr', c_corr.values,
-                        dtype=numpy.float32,
+                        dtype=np.float32,
                         interleave='bil', ext=None,
                         metadata=c_corr.attrs,
                         force=force)
