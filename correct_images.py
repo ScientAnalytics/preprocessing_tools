@@ -1,3 +1,4 @@
+import os
 import os.path as path
 import glob
 
@@ -30,9 +31,8 @@ def folder_to_load(folder_location):
         elif 'raw' in file.lower():
             images.append(file)
         else:
-            print(f"Unrecognized file: {file}")
-            continue
-            raise FileNotFoundError(f'{file} is not a valid HSI')
+            print(f"Unrecognized file, assuming raw HSI: {file}")
+            images.append(file)
 
     print(f"Identified {len(images)} raw images, {len(white_refs)} white references, and {len(dark_refs)} dark references.")
     print("Exiting folder_to_load function...")
@@ -63,13 +63,17 @@ def white_dark_correction(hsi, white, dark):
 @click.option('--drift', default=0,
               help='''Correct drift in wavelengths. Will add this value to the
               recorded wavelength values.''')
-@click.option('--wd', default=False,
-              help='''Perform white/dark reference correction. Will need a
-              white and dark reference location to be supplied as well.''')
-@click.option('--whiteref')
-@click.option('--darkref')
+# @click.option('--wd', default=False, show_default=True,
+#               help='''Perform white/dark reference correction. Will need a
+#               white and dark reference location to be supplied as well.''')
+@click.option('--whiteref', default=None,
+              help='''The location of the white reference to use.''')
+@click.option('--darkref', default=None,
+              help='''The location of the white reference to use.''')
+@click.option('--despike_threshold', default=0.15, show_default=True,
+              help='''Remove spikes in the data.''')
 def process_folder(infolder, outfolder, force, ignore_bands, drift,
-                   wd, whiteref, darkref):
+                   whiteref, darkref, despike_threshold: float):
     print(f"Received infolder: {infolder}")
     print(f"Received outfolder: {outfolder}")
 
@@ -82,9 +86,17 @@ def process_folder(infolder, outfolder, force, ignore_bands, drift,
         os.makedirs(outfolder, exist_ok=True)
 
     # Load the good white and dark references once
-    if wd:
-        white_ref = load_hyper.load_image(good_white_ref_path)[:, :, ignore_bands:]
-        dark_ref = load_hyper.load_image(good_dark_ref_path)[:, :, ignore_bands:]
+    if whiteref is None and darkref is None:
+        print('Skipping White/Dark Reference correction.')
+        wd = False
+    elif whiteref is None or darkref is None:
+        msg = 'If White/Dark correction is desired, both whiteref and darkref'
+        msg = msg + f' must be provided, not {whiteref} and {darkref}'
+        raise AssertionError(msg)
+    else:
+        white_ref = load_hyper.load_image(whiteref)[:, :, ignore_bands:]
+        dark_ref = load_hyper.load_image(darkref)[:, :, ignore_bands:]
+        wd = True
 
     images = folder_to_load(infolder)[0]  # Assuming folder_to_load returns a tuple of lists
 
@@ -114,7 +126,7 @@ def process_folder(infolder, outfolder, force, ignore_bands, drift,
         print('done.')
 
         c_corr.attrs = hsi.attrs
-        print(f'Drift: {drift}')
+        print(f'Drift correction: {drift}')
         c_corr.attrs['wavelength'] = c_corr.wavelength.values + drift
         c_corr['wavelength'] = c_corr.wavelength.values + drift
 
