@@ -57,11 +57,11 @@ def white_dark_correction(hsi, white, dark):
 @click.option('--outfolder', default=None,
               help='''Location of folder to write corrected images to.
               If not given, will be the same as the infolder.''')
-@click.option('--force', default=False,
-              help='Clobber existing files? Default is False.')
-@click.option('--ignore_bands', default=10,
-              help='Ignore the first n bands. Default is 10.')
-@click.option('--drift', default=0,
+@click.option('--force', default=False, show_default=True,
+              help='Clobber existing files?')
+@click.option('--ignore_bands', default=10, show_default=True,
+              help='Ignore the first n bands.')
+@click.option('--drift', default=0, show_default=True,
               help='''Correct drift in wavelengths. Will add this value to the
               recorded wavelength values.''')
 # @click.option('--wd', default=False, show_default=True,
@@ -116,10 +116,6 @@ def process_folder(infolder, outfolder, force, ignore_bands, drift,
         elif path.exists(fname) and force:
             print(f'{fname} exists and "force" is true. Will overwrite.')
 
-        # White/Dark correction using good references
-        print('White/Dark correction', end=' ')
-        wd_corr = white_dark_correction(hsi, good_white_ref, good_dark_ref)
-        print('done.')
         if despike_threshold > 0:
             print('Despiking image', end=' ')
             despiked = despike_image(hsi, despike_threshold)
@@ -132,6 +128,12 @@ def process_folder(infolder, outfolder, force, ignore_bands, drift,
         else:
             print('Despike threshold is 0, skipping.')
 
+        if wd:
+            print('White/Dark correction', end=' ')
+            wd_corr = white_dark_correction(hsi, white_ref, dark_ref)
+            print('done.')
+        else:
+            wd_corr = hsi
 
         # Continuum correction
         print('Continuum correction', end=' ')
