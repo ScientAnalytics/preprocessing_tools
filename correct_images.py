@@ -9,6 +9,7 @@ import click
 
 import tools.load_hyper as load_hyper
 from tools.continuum_correction import continuum_image
+from tools.despiking import despike_image
 
 
 def folder_to_load(folder_location):
@@ -119,6 +120,18 @@ def process_folder(infolder, outfolder, force, ignore_bands, drift,
         print('White/Dark correction', end=' ')
         wd_corr = white_dark_correction(hsi, good_white_ref, good_dark_ref)
         print('done.')
+        if despike_threshold > 0:
+            print('Despiking image', end=' ')
+            despiked = despike_image(hsi, despike_threshold)
+            hsi = xr.DataArray(
+                despiked,
+                coords=hsi.coords,
+                attrs=hsi.attrs,
+            )
+            print('done.')
+        else:
+            print('Despike threshold is 0, skipping.')
+
 
         # Continuum correction
         print('Continuum correction', end=' ')
